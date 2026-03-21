@@ -1,0 +1,79 @@
+/* 1. Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #0f1014; /* Deep Hotstar Navy/Black */
+  color: #fff;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 2. Hide Scrollbars (Par scrolling chalti rahegi) */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* 3. Layout Styling */
+.App {
+  display: flex;
+  background-color: #0f1014;
+  min-height: 100vh;
+}
+
+/* 4. Movie Poster Styling */
+img {
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease;
+  will-change: transform;
+  background-color: #1a1c22; /* Placeholder color jab tak image load na ho */
+}
+
+img:hover {
+  transform: scale(1.1) !important; /* Thoda bada dikhega hover pe */
+  box-shadow: 0px 15px 30px rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  z-index: 10;
+}
+
+/* 5. Typography */
+h1, h2, h3 {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+h3 {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 15px;
+  text-transform: capitalize;
+}
+
+/* 6. Sidebar Icons (Optional but Good) */
+.sidebar span {
+  transition: 0.3s;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.sidebar span:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* 7. Search Bar Styling */
+input::placeholder {
+  color: #888;
+}
+
+input:focus {
+  background: #444 !important;
+  border: 1px solid #555;
+}
