@@ -50,7 +50,7 @@ function App() {
 
   const moviesWithImages = movieData.map(m => ({
     ...m,
-    img: `images/${m.id}.jpg`
+    img: `${window.location.origin}/images/${m.id}.jpg`
   }));
 
   const filteredData = moviesWithImages.filter(movie =>
