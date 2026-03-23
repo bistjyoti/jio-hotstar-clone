@@ -34,19 +34,61 @@ const movieData = [
 ];
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedVideo, setSelectedVideo] = useState(null);
 
+  const [userInput, setUserInput] = useState("");
+  const [passInput, setPassInput] = useState("");
+  const [nameInput, setNameInput] = useState("");
+
   useEffect(() => {
-    if (!searchTerm && activeCategory === "All") {
+    const session = localStorage.getItem("isLoggedIn");
+    if (session === "true") setIsLoggedIn(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoggedIn && !searchTerm && activeCategory === "All") {
       const timer = setInterval(() => {
         setCurrentBannerIndex((prev) => (prev + 1) % 5);
       }, 5000); 
       return () => clearInterval(timer); 
     }
-  }, [searchTerm, activeCategory]);
+  }, [searchTerm, activeCategory, isLoggedIn]);
+
+  const handleSignUp = () => {
+    if (!nameInput || !userInput || !passInput) {
+      alert("Pehle saari details bharo na!");
+      return;
+    }
+    const userData = { name: nameInput, email: userInput, password: passInput };
+    localStorage.setItem("myUserDB", JSON.stringify(userData));
+    alert("Account ban gaya! Ab login karo.");
+    setIsSigningUp(false);
+  };
+
+  const handleLogin = () => {
+    const storedUser = localStorage.getItem("myUserDB");
+    if (storedUser) {
+      const db = JSON.parse(storedUser);
+      if (db.email === userInput && db.password === passInput) {
+        localStorage.setItem("isLoggedIn", "true");
+        setIsLoggedIn(true);
+      } else {
+        alert("Galat password hai jaanu, phir se try karo!");
+      }
+    } else {
+      alert("Account nahi mila! Pehle Subscribe Now pe jao.");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    setIsLoggedIn(false);
+  };
 
   const moviesWithImages = movieData.map(m => ({
     ...m,
@@ -60,89 +102,94 @@ function App() {
   const categoriesList = [...new Set(movieData.map(m => m.category))].sort();
 
   return (
-    <div className="App" style={{ backgroundColor: '#0f1014', color: 'white', minHeight: '100vh', display: 'flex', fontFamily: 'Arial, sans-serif' }}>
+    <div className="App" style={{ backgroundColor: '#0f1014', color: 'white', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
       
-      {/* SIDEBAR */}
-      <div style={{ width: '80px', height: '100vh', position: 'fixed', left: 0, borderRight: '1px solid #333', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '20px', gap: '30px', zIndex: 100, backgroundColor: '#0f1014' }}>
-        <img src="https://img.hotstar.com/image/upload/v1656420261/masterbrand/hotstar-logo-white-with-vinyl.png" style={{ width: '45px', cursor: 'pointer' }} onClick={() => setActiveCategory("All")} alt="logo" />
-        <div title="Home" onClick={() => setActiveCategory("All")} style={{ cursor: 'pointer', fontSize: '22px', opacity: activeCategory === "All" ? 1 : 0.5, transition: '0.3s' }}>🏠</div>
-        <div title="Hollywood" onClick={() => setActiveCategory("Hollywood")} style={{ cursor: 'pointer', fontSize: '22px', opacity: activeCategory === "Hollywood" ? 1 : 0.5, transition: '0.3s' }}>🎬</div>
-        <div title="Bollywood" onClick={() => setActiveCategory("Bollywood")} style={{ cursor: 'pointer', fontSize: '22px', opacity: activeCategory === "Bollywood" ? 1 : 0.5, transition: '0.3s' }}>🎥</div>
-      </div>
-
-      <div style={{ marginLeft: '80px', width: '100%' }}>
-        
-        {/* HERO BANNER */}
-        {!searchTerm && activeCategory === "All" && (
-          <div style={{ 
-            height: '75vh', 
-            backgroundImage: `linear-gradient(to top, #0f1014 10%, transparent 50%), linear-gradient(to right, #0f1014 20%, transparent 60%), url("/images/${movieData[currentBannerIndex]?.id}.jpg")`, 
-            backgroundSize: 'cover', backgroundPosition: 'center top', display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingLeft: '60px', transition: '1s ease-in-out'
-          }}>
-             <h1 style={{ fontSize: '60px', marginBottom: '10px', textShadow: '2px 2px 10px black' }}>{movieData[currentBannerIndex]?.title}</h1>
-             <p style={{ fontSize: '18px', color: '#ccc', maxWidth: '500px', marginBottom: '20px' }}>Streaming now only on JioHotstar.</p>
-             <button onClick={() => setSelectedVideo(movieData[currentBannerIndex]?.trailer)} style={{ width: '180px', padding: '15px', fontWeight: 'bold', backgroundColor: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: '0.3s' }}>▶ WATCH NOW</button>
+      {!isLoggedIn ? (
+        <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundImage: 'linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url("https://img.hotstar.com/image/upload/v1656420261/masterbrand/disney-hotstar-masterbrand-background-hero-desktop.jpg")', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+          <div style={{ backgroundColor: 'rgba(0,0,0,0.9)', padding: '40px', borderRadius: '12px', width: '380px', textAlign: 'center', border: '1px solid #333' }}>
+            <div style={{ marginBottom: '30px', background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px' }}>
+                <img src="/images/jiologo.png" style={{ width: '100%' }} alt="Logo" />
+            </div>
+            <h2 style={{ marginBottom: '25px', textAlign: 'left' }}>{isSigningUp ? "Create Account" : "Sign In"}</h2>
+            {isSigningUp && (
+                <input type="text" placeholder="Full Name" value={nameInput} onChange={(e)=>setNameInput(e.target.value)} style={{ width: '100%', padding: '15px', marginBottom: '15px', borderRadius: '6px', border: '1px solid #444', backgroundColor: '#16181f', color: 'white', outline: 'none' }} />
+            )}
+            <input type="text" placeholder="Email" value={userInput} onChange={(e)=>setUserInput(e.target.value)} style={{ width: '100%', padding: '15px', marginBottom: '15px', borderRadius: '6px', border: '1px solid #444', backgroundColor: '#16181f', color: 'white', outline: 'none' }} />
+            <input type="password" placeholder="Password" value={passInput} onChange={(e)=>setPassInput(e.target.value)} style={{ width: '100%', padding: '15px', marginBottom: '30px', borderRadius: '6px', border: '1px solid #444', backgroundColor: '#16181f', color: 'white', outline: 'none' }} />
+            <button onClick={isSigningUp ? handleSignUp : handleLogin} style={{ width: '100%', padding: '15px', backgroundColor: '#0072ee', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
+              {isSigningUp ? "Sign Up" : "Log In"}
+            </button>
+            <p style={{ marginTop: '25px', color: '#8f98b2' }}>
+              {isSigningUp ? "Account hai?" : "New here?"} 
+              <span onClick={() => setIsSigningUp(!isSigningUp)} style={{ color: 'white', cursor: 'pointer', fontWeight: 'bold', marginLeft: '5px' }}>
+                {isSigningUp ? "Sign In" : "Subscribe Now"}
+              </span>
+            </p>
           </div>
-        )}
-
-        {/* SEARCH BAR */}
-        <div style={{ padding: searchTerm || activeCategory !== "All" ? '100px 60px 20px' : '40px 60px' }}>
-          <input type="text" placeholder="Search from 30 movies..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '12px 20px', width: '350px', borderRadius: '25px', border: '1px solid #444', background: 'rgba(255,255,255,0.1)', color: 'white', outline: 'none' }} />
         </div>
+      ) : (
+        <div style={{ display: 'flex' }}>
+          {/* --- ENHANCED SIDEBAR --- */}
+          <div style={{ width: '85px', height: '100vh', position: 'fixed', left: 0, borderRight: '1px solid #333', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '25px', zIndex: 100, backgroundColor: '#0f1014' }}>
+            <img src="/images/jiologo.png" style={{ width: '55px', marginBottom: '45px', cursor: 'pointer' }} onClick={() => setActiveCategory("All")} alt="logo" />
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '35px', alignItems: 'center' }}>
+              <div title="Home" onClick={() => setActiveCategory("All")} style={{ cursor: 'pointer', fontSize: '24px', opacity: activeCategory === "All" ? 1 : 0.5 }}>🏠</div>
+              <div title="Search" onClick={() => document.getElementById('movieSearch').focus()} style={{ cursor: 'pointer', fontSize: '24px', opacity: 0.5 }}>🔍</div>
+              <div title="Movies" onClick={() => setActiveCategory("Hollywood")} style={{ cursor: 'pointer', fontSize: '24px', opacity: activeCategory === "Hollywood" ? 1 : 0.5 }}>🎬</div>
+              <div title="TV Shows" onClick={() => setActiveCategory("Web Series")} style={{ cursor: 'pointer', fontSize: '24px', opacity: activeCategory === "Web Series" ? 1 : 0.5 }}>📺</div>
+              <div title="Categories" onClick={() => alert("All Categories coming soon!")} style={{ cursor: 'pointer', fontSize: '24px', opacity: 0.5 }}>📂</div>
+            </div>
 
-        {/* DYNAMIC ROWS */}
-        <div style={{ minHeight: '400px' }}>
-          {categoriesList
-            .filter(cat => activeCategory === "All" || cat === activeCategory)
-            .map(cat => {
-              const movies = filteredData.filter(m => m.category === cat);
-              if (movies.length === 0) return null;
-              return (
-                <div key={cat} style={{ marginBottom: '40px' }}>
-                  <h3 style={{ paddingLeft: '60px', marginBottom: '15px', fontSize: '22px' }}>{cat}</h3>
-                  <div className="no-scrollbar" style={{ display: 'flex', overflowX: 'auto', gap: '20px', padding: '10px 60px' }}>
-                    {movies.map(movie => (
-                      <div key={movie.id} style={{ minWidth: '180px', transition: '0.3s' }}>
-                        <img 
-                          src={movie.img} 
-                          alt={movie.title} 
-                          onClick={() => setSelectedVideo(movie.trailer)} 
-                          style={{ 
-                            width: '180px', 
-                            height: '260px', 
-                            borderRadius: '12px', 
-                            cursor: 'pointer', 
-                            objectFit: 'cover', 
-                            transition: 'transform 0.4s ease, box-shadow 0.4s ease' 
-                          }} 
-                          // HOVER LOGIC START
-                          onMouseOver={(e) => {
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = '0px 10px 25px rgba(0,0,0,0.8)';
-                          }}
-                          onMouseOut={(e) => {
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                          // HOVER LOGIC END
-                        />
-                        <p style={{ textAlign: 'center', fontSize: '14px', marginTop: '10px', color: '#ccc' }}>{movie.title}</p>
+            <div style={{ marginTop: 'auto', marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '30px', alignItems: 'center' }}>
+              <div title="My Profile" style={{ cursor: 'pointer', fontSize: '24px', opacity: 0.5 }}>👤</div>
+              <div title="Logout" onClick={handleLogout} style={{ cursor: 'pointer', fontSize: '24px', color: '#ff4d4d', opacity: 0.8 }}>🚪</div>
+            </div>
+          </div>
+
+          {/* MAIN CONTENT AREA */}
+          <div style={{ marginLeft: '85px', width: '100%' }}>
+            {!searchTerm && activeCategory === "All" && (
+              <div style={{ height: '75vh', backgroundImage: `linear-gradient(to top, #0f1014 10%, transparent 50%), linear-gradient(to right, #0f1014 20%, transparent 60%), url("/images/${movieData[currentBannerIndex]?.id}.jpg")`, backgroundSize: 'cover', backgroundPosition: 'center top', display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingLeft: '60px' }}>
+                <h1 style={{ fontSize: '60px', marginBottom: '10px' }}>{movieData[currentBannerIndex]?.title}</h1>
+                <p style={{ fontSize: '18px', color: '#ccc', marginBottom: '20px' }}>Watch now on JioHotstar.</p>
+                <button onClick={() => setSelectedVideo(movieData[currentBannerIndex]?.trailer)} style={{ width: '180px', padding: '15px', fontWeight: 'bold', backgroundColor: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>▶ WATCH NOW</button>
+              </div>
+            )}
+
+            <div style={{ padding: '40px 60px' }}>
+              <input id="movieSearch" type="text" placeholder="Search movies, shows..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '12px 20px', width: '400px', borderRadius: '25px', border: '1px solid #444', background: 'rgba(255,255,255,0.1)', color: 'white', outline: 'none' }} />
+            </div>
+
+            <div style={{ paddingBottom: '50px' }}>
+              {categoriesList.filter(cat => activeCategory === "All" || cat === activeCategory).map(cat => {
+                  const movies = filteredData.filter(m => m.category === cat);
+                  if (movies.length === 0) return null;
+                  return (
+                    <div key={cat} style={{ marginBottom: '40px' }}>
+                      <h3 style={{ paddingLeft: '60px', marginBottom: '15px', color: '#8f98b2' }}>{cat}</h3>
+                      <div className="no-scrollbar" style={{ display: 'flex', overflowX: 'auto', gap: '20px', padding: '0px 60px' }}>
+                        {movies.map(movie => (
+                          <div key={movie.id} style={{ minWidth: '180px', transition: '0.3s' }}>
+                            <img src={movie.img} alt={movie.title} onClick={() => setSelectedVideo(movie.trailer)} style={{ width: '180px', height: '260px', borderRadius: '8px', cursor: 'pointer', objectFit: 'cover' }} />
+                            <p style={{ textAlign: 'center', fontSize: '14px', marginTop: '10px' }}>{movie.title}</p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-        </div>
-      </div>
-
-      {/* MODAL */}
-      {selectedVideo && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
-          <div style={{ position: 'relative', width: '85%', maxWidth: '1000px' }}>
-            <button onClick={() => setSelectedVideo(null)} style={{ position: 'absolute', top: '-50px', right: 0, color: 'white', background: 'none', border: '1px solid white', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer' }}>✕</button>
-            <iframe width="100%" height="550px" src={selectedVideo} title="trailer" frameBorder="0" allowFullScreen></iframe>
+                    </div>
+                  );
+              })}
+            </div>
           </div>
+
+          {selectedVideo && (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
+              <div style={{ position: 'relative', width: '85%', maxWidth: '1000px' }}>
+                <button onClick={() => setSelectedVideo(null)} style={{ position: 'absolute', top: '-50px', right: 0, color: 'white', background: 'none', border: '1px solid white', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer' }}>✕</button>
+                <iframe width="100%" height="550px" src={selectedVideo} title="trailer" frameBorder="0" allowFullScreen></iframe>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
